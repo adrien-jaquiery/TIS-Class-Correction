@@ -93,13 +93,10 @@ def zeroPadding(f,m):
         raise Exception("Mask must have odd sizes")
     a = (np.shape(m)[0] - 1) // 2
     b = (np.shape(m)[1] - 1) // 2
-    
-    if len(np.shape(f)) == 3:   # not a grayscale image
-        fp = np.zeros((np.shape(f)[0] + 2 * a, np.shape(f)[1] + 2 * b, np.shape(f)[2]), dtype = f.dtype)
-    else:   # grayscale image
-        fp = np.zeros((np.shape(f)[0] + 2 * a, np.shape(f)[1] + 2 * b), dtype = f.dtype)
 
-    fp[a:-a,b:-b] = f
+    
+    fp = np.pad(f, ((a,a),(b,b),(0,0)) if len(f.shape) == 3 else ((a,a),(b,b)))
+
     if len(f.shape) == 3 and f.shape[2] == 4:    # Image with alpha -> setting alpha to 1
         fp[0:a,:,3] = 255 if f.dtype == 'uint8' else 1.0
         fp[-a:,:,3] = 255 if f.dtype == 'uint8' else 1.0
@@ -125,10 +122,20 @@ def imagePadding(_f, _mask, _type='mirror'):
 def imageUnpadding(f,mask):
     if not np.shape(mask)[0] % 2 or not np.shape(mask)[1] % 2:
         raise Exception("Mask must have odd sizes")
-    b = (np.shape(mask)[0] - 1) // 2
-    a = (np.shape(mask)[1] - 1) // 2
-
-    return f[a:-a, b:-b]
+    a = (np.shape(mask)[0] - 1) // 2
+    b = (np.shape(mask)[1] - 1) // 2
+    
+    if a == 0:  # no unpadding if mask is 1x1
+        if b == 0:
+            return f
+        else:
+            return f[:,b:-b]
+    else:
+        if b == 0:
+            return f[a:-a,:]
+        else:
+            return f[a:-a,b:-b]
+    
 
 
 #######################################################################################
