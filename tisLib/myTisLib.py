@@ -184,6 +184,21 @@ def conv2D(_f,_mask, norm=True):
 
     return g
 
+def conv2DRefined(_f,_mask, norm=True):
+    (a,b) = tuple((x-1)//2 for x in np.shape(_mask))
+    fp = imagePadding(_f, _mask, _type='zero').astype('double')
+    g = np.zeros(np.shape(fp), dtype='double')
+    (rows, cols) = np.shape(g)
+    
+    for r in range(a, rows-a):
+        for c in range(b, cols-b):
+            g[r, c] = np.sum(_mask*fp[r-a:r+a+1, c-b:c+b+1])
+    g = imageUnpadding(g, _mask)
+    if(norm):
+        return MAX_GRAY * (g - np.min(g))/(np.max(g) - min(g))
+    else:
+        return g
+
 
 ######################################################################################
 ##################################### Histograms #####################################
